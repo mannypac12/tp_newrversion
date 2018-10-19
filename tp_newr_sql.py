@@ -18,7 +18,7 @@ class query:
 
     def __init__(self):
 
-        self.engine = cxo.connect(user='uffdba', password='venus2006', dsn='funddb')
+        self.engine = cxo.connect(user='******', password='******', dsn='******')
 
     def read_sql(self, query):
 
