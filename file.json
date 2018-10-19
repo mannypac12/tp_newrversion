@@ -1,0 +1,65 @@
+{
+    "국내채권직접": "WITH FT AS (
+    SELECT A.STD_DT
+           , A.평가금액
+           , A.장부금액
+           , NVL(B."채권원리금상환", 0) AS 채권원리금상환
+           , NVL(B."주식매도", 0) AS 주식매도
+           , NVL(B."채권매도", 0) AS 채권매도                   
+           , NVL(B."채권매수", 0) AS 채권매수          
+           , NVL(B."채권수요예측", 0) AS 채권수요예측          
+           , NVL(B."채권이자수령", 0) AS 채권이자수령
+           , NVL(B."주식매도대금수령", 0) AS 주식매도대금수령
+    FROM 
+    (
+    SELECT     STD_DT,
+                         SUM(CASE WHEN PVL_QTY = 0 THEN 0 ELSE EVL_AMT END) AS 평가금액,
+                         SUM(CASE WHEN PVL_QTY = 0 THEN 0 ELSE ACBK_AMT END) AS 장부금액
+               FROM      CX_TP_ACNT_BY_PSBD
+               WHERE     1=1 
+                         AND FUND_CD IN ('111010', '111020')
+                         AND STD_DT BETWEEN '20171231' AND '20180630'
+               GROUP BY  STD_DT
+    ) A,
+    (
+               SELECT    A.STD_DT,
+                          SUM(CASE WHEN A.TRSC_TP_CD = 'B4310' THEN A.STTL_AMT END) AS "채권원리금상환"                     
+                         ,SUM(CASE WHEN A.TRSC_TP_CD = 'S1110' THEN A.STTL_AMT END) AS "주식매도"                     
+                         ,SUM(CASE WHEN A.TRSC_TP_CD = 'B1110' THEN A.STTL_AMT END) AS "채권매도"
+                         ,SUM(CASE WHEN A.TRSC_TP_CD = 'B1100' THEN A.STTL_AMT END) AS "채권매수"
+                         ,SUM(CASE WHEN A.TRSC_TP_CD = 'B1350' THEN A.STTL_AMT END) AS "채권수요예측"                     
+                         ,SUM(CASE WHEN A.TRSC_TP_CD = 'B4200' THEN A.STTL_AMT END) AS "채권이자수령"
+                         ,SUM(CASE WHEN A.TRSC_TP_CD = 'S3020' THEN A.STTL_AMT END) AS "주식매도대금수령"                     
+               FROM      CX_TP_ACNT_BY_TRBD A, CX_TP_BO_TRSC_TP B
+               WHERE     A.FUND_CD IN ('111010', '111020')
+               AND       A.TRSC_TP_CD = B.TRSC_TP_CD(+)
+               AND       A.TRSC_TP_CD IN ('B4310', 'S1110','B1110','B1100','B1350','B4200', 'S3020')
+               AND       A.STD_DT BETWEEN '20171231' AND '20180630'
+               GROUP BY  A.STD_DT
+               ORDER BY  A.STD_DT           
+    ) B
+    WHERE 1=1
+    AND   A.STD_DT = B.STD_DT(+)
+    ORDER BY A.STD_DT), SND AS (
+    -- SQL 매도 / 매수 / 별도 RE FUNCTION으로 변경
+    SELECT STD_DT, LAG(평가금액) OVER (ORDER BY STD_DT) 전일자평가금액
+           , 평가금액
+           , 장부금액
+           , 채권원리금상환+주식매도+채권매도 매도 
+           , 채권매수+채권수요예측 매수
+           , 채권이자수령+주식매도대금수령 별도  
+    FROM FT
+    ) SELECT STD_DT, '국내채권직접' 자산구분, 전일자평가금액, 평가금액
+             , 장부금액, 매도, 매수, 별도
+             , CASE WHEN 평가금액 = 0 AND 장부금액 = 0 THEN
+                    평가금액 + 매도 + 별도 
+                    ELSE 평가금액 + 별도 END 기말금액
+             , CASE WHEN 평가금액 = 0 AND 장부금액 = 0 THEN
+                    전일자평가금액 + 매수 
+                    ELSE 전일자평가금액 + 매수 - 매도 END 기초금액
+             , CASE WHEN 평가금액 = 0 AND 장부금액 = 0 THEN
+                    (평가금액 + 매도 + 별도) / (전일자평가금액 + 매수)  
+                    ELSE (평가금액 + 별도) / (전일자평가금액 + 매수 - 매도) END 수익률
+        FROM SND
+        WHERE STD_DT BETWEEN '20180101' AND '20180630'"
+}
