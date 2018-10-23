@@ -271,6 +271,7 @@ class ast_sql:
                 GROUP BY A.STD_DT
                 ORDER BY A.STD_DT
                     """
+
     def fs_ast_qry(self):
 
         fs_qry = f"""
@@ -297,7 +298,114 @@ class ast_sql:
 
         return fs_qry
 
+class bm_rf_qry:
 
+    def __init__(self, st_dt, ed_dt):
+
+        self.st_dt=st_dt 
+        self.ed_dt=ed_dt 
+
+    def date_creator(self):
+
+        # RF 쿼리 내 Nested Query 담당
+
+        return (datetime.strptime(self.st_dt, '%Y%m%d') - timedelta(days=4)).strftime('%Y%m%d')
+
+    def bm_query(self):
+
+        bm_qry= f"""
+                    SELECT A.STD_DT
+                        , 국내채권직접, 금융상품, 국내채권계 , 해외채권직접, 해외채권간접, 해외채권계 
+                        , A.국내채권계*B.BND_WGT + A.해외채권계*B.FRBN_WGT 채권계 
+                        , 국내주식직접, 국내주식간접, 국내주식계, 해외주식간접
+                        , 국내주식계*B.STK_WGT + A.해외주식간접*B.FRST_WGT 주식계
+                        , 현금성, 금융자산계
+                        , 국내대체직접, 국내대체간접, 국내대체, 해외대체간접, 대체전체, 기금전체       
+                    FROM
+                    (
+                        SELECT DT STD_DT         
+                            , MIN(CASE WHEN BM_CD = 'B0304' THEN RET + 1 END) 국내채권직접       
+                            , MIN(CASE WHEN BM_CD = 'B0304' THEN RET + 1 END) 금융상품       
+                            , MIN(CASE WHEN BM_CD = 'B0304' THEN RET + 1 END) 국내채권계
+                            , MIN(CASE WHEN BM_CD = 'B0271' THEN RET + 1 END) 해외채권직접       
+                            , MIN(CASE WHEN BM_CD = 'B0271' THEN RET + 1 END) 해외채권간접
+                            , MIN(CASE WHEN BM_CD = 'B0271' THEN RET + 1 END) 해외채권계              
+                            , MIN(CASE WHEN BM_CD = 'B0273' THEN RET + 1 END) 국내주식직접           
+                            , MIN(CASE WHEN BM_CD = 'B0272' THEN RET + 1 END) 국내주식간접
+                            , MIN(CASE WHEN BM_CD = 'B0272' THEN RET + 1 END) 국내주식계       
+                            , MIN(CASE WHEN BM_CD = 'B0302' THEN RET + 1 END) 해외주식간접  
+                            , MIN(CASE WHEN BM_CD = 'B0266' THEN RET + 1 END) 현금성       
+                            , MIN(CASE WHEN BM_CD = 'B0306' THEN RET + 1 END) 금융자산계             
+                            , MIN(CASE WHEN BM_CD = 'B0339' THEN RET + 1 END) 국내대체직접       
+                            , MIN(CASE WHEN BM_CD = 'B0340' THEN RET + 1 END) 국내대체간접       
+                            , MIN(CASE WHEN BM_CD = 'B0329' THEN RET + 1 END) 국내대체       
+                            , MIN(CASE WHEN BM_CD = 'B0342' THEN RET + 1 END) 해외대체간접
+                            , MIN(CASE WHEN BM_CD = 'B0331' THEN RET + 1 END) 대체전체
+                            , MIN(CASE WHEN BM_CD = 'B0305' THEN RET + 1 END) 기금전체   
+                        FROM CX_TP_MRET
+                        WHERE DT BETWEEN '{self.st_dt}' AND '{self.ed_dt}'
+                        GROUP BY DT
+                    ) A, 
+                    (
+                            SELECT A.STD_DT
+                                , NVL(LAST_VALUE(NULLIF(B.BND_WGT/(B.BND_WGT + B.FRBN_WGT), 0))
+                                        IGNORE NULLS OVER (ORDER BY A.STD_DT), 0) BND_WGT 
+                                , NVL(LAST_VALUE(NULLIF(B.FRBN_WGT/(B.BND_WGT + B.FRBN_WGT), 0))
+                                        IGNORE NULLS OVER (ORDER BY A.STD_DT), 0) FRBN_WGT     
+                                , NVL(LAST_VALUE(NULLIF(B.STK_WGT/(B.STK_WGT + B.FRST_WGT), 0))
+                                        IGNORE NULLS OVER (ORDER BY A.STD_DT), 0) STK_WGT 
+                                , NVL(LAST_VALUE(NULLIF(B.FRST_WGT/(B.STK_WGT + B.FRST_WGT), 0))
+                                        IGNORE NULLS OVER (ORDER BY A.STD_DT), 0) FRST_WGT                                    
+                            FROM
+                            (
+                                SELECT TRD_DT AS STD_DT
+                                FROM FNC_CALENDAR@D_FNDB2_UFNGDBA
+                                WHERE TRD_DT BETWEEN '{self.st_dt}' AND '{self.ed_dt}'
+                            ) A, 
+                            (
+                                SELECT BIGN_DT, BND_WGT, FRBN_WGT, STK_WGT, FRST_WGT
+                                FROM CX_TP_BMWT
+                                WHERE 1=1 
+                                    AND BM_CD = 'B0305'
+                                    AND BIGN_DT BETWEEN '{self.st_dt}' AND '{self.ed_dt}'
+                            ) B
+                            WHERE A.STD_DT = B.BIGN_DT(+)
+                    ) B
+                    WHERE A.STD_DT = B.STD_DT
+                """
+        return bm_qry
+
+    def rf_query(self):
+        
+        st_dt_b3 = self.date_creator()
+
+        rf_qry = f"""
+                SELECT *
+                FROM
+                (
+                    SELECT A.TRD_DT AS STD_DT
+                            , nvl(last_value(nullif(B.AMOUNT, 0)) 
+                                IGNORE NULLS OVER (ORDER BY A.TRD_DT), 0) RF
+                    FROM
+                    (
+                        SELECT TRD_DT
+                        FROM FNC_CALENDAR@D_FNDB2_UFNGDBA
+                        WHERE TRD_DT BETWEEN '{st_dt_b3}' AND '{self.ed_dt}'
+                    ) A, 
+                    (
+                        SELECT TRD_DT, AMOUNT
+                        FROM FNE_ECO_DATA@D_FNDB2_UFNGDBA
+                        WHERE 1=1
+                            AND ECO_CD = '11.02.003.009'
+                            AND TERM = 'D'
+                            AND TRD_DT BETWEEN '{st_dt_b3}' AND '{self.ed_dt}'
+                    ) B
+                    WHERE 1=1 
+                        AND A.TRD_DT = B.TRD_DT(+)
+                ) A
+                WHERE STD_DT BETWEEN '{self.st_dt}' AND '{self.ed_dt}'
+                """
+        return rf_qry
 ## If main name 붙이기
 
 
@@ -430,3 +538,5 @@ ov_ai_g_sub_qry_dict=asset_dict(asset='해외대체간접',
                                 name=["SOC","부동산","PEF", "헤지펀드"], 
                                 code=["'AI140'","'AI240'","'AI340'","'AI640'"])
 
+bm_qry=bm_rf_qry(st_dt=st_date, ed_dt=ed_date).bm_query()
+rf_qry=bm_rf_qry(st_dt=st_date, ed_dt=ed_date).rf_query()
