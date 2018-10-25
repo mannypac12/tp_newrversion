@@ -25,7 +25,7 @@ fund_cd 를 관리하하는 부분 - list to string
 
 st_date = '20180101'
 ed_date = '20180630'
-ast_qry_key=dic.ast_qry_key ## 절대 건들지 말 것
+# ast_qry_key=dic.ast_qry_key ## 절대 건들지 말 것
 ## ast_sql에 다 집어넣을까?
 ## 그러면 수정해야 될 부분만 넣어서 
 
@@ -433,143 +433,178 @@ class sql_loader:
 
         return dt.set_index('STD_DT')
 
-def up_asset_dict():
-    
-    query={}
-    # asset_keys=['국내채권직접', '채권_금융상품', '해외채권직접', '해외채권간접', '국내주식직접', '국내주식간접', '해외주식간접', '현금성', '국내대체직접']
-    for key in ast_qry_key:
-        if key not in ['국내대체간접', '해외대체간접']:
-            query[key]=ast_sql(f'{key}'
-                                        , st_date, ed_date
-                                        , fund_cd=ast_qry_key[key]['펀드코드']
-                                        , trsc_tp_cd=ast_qry_key[key]['거래코드']
-                                        , trsc_tp_nm=ast_qry_key[key]['거래명']
-                                        , trsc_type=ast_qry_key[key]['거래구분']).fs_ast_qry()
-        
-        elif key == '국내대체간접':
-            query[key]=ast_sql(f'{key}'
-                                        , st_date, ed_date
-                                        , fund_cd=ast_qry_key[key]['펀드코드']
-                                        , trsc_tp_cd=ast_qry_key[key]['거래코드']
-                                        , trsc_tp_nm=ast_qry_key[key]['거래명']
-                                        , trsc_type=ast_qry_key[key]['거래구분']
-                                        , clas_code= ["'AI130'", "'AI230'", "'AI330'", "'AI360'", "'AI430'"]).fs_ast_qry()
+class sql_factory:
+## 상위자산군 
+# '국내채권직접', '채권_금융상품', '해외채권직접', '해외채권간접', '국내주식직접', '국내주식간접', '해외주식간접', '현금성', '국내대체직접', '국내대체간접', '해외대체간접'
+    def __init__(self):
+        self.ast_qry_key=dic.ast_qry_key
+
+    def up_asset_dict(self):
+
+        query={}
+        # asset_keys=['국내채권직접', '채권_금융상품', '해외채권직접', '해외채권간접', '국내주식직접', '국내주식간접', '해외주식간접', '현금성', '국내대체직접']
+        for key in self.ast_qry_key:
+            if key not in ['국내대체간접', '해외대체간접']:
+                query[key]=ast_sql(f'{key}'
+                                            , st_date, ed_date
+                                            , fund_cd=self.ast_qry_key[key]['펀드코드']
+                                            , trsc_tp_cd=self.ast_qry_key[key]['거래코드']
+                                            , trsc_tp_nm=self.ast_qry_key[key]['거래명']
+                                            , trsc_type=self.ast_qry_key[key]['거래구분']).fs_ast_qry()
             
-        elif key == '해외대체간접':
-            query[key]=ast_sql(f'{key}'
+            elif key == '국내대체간접':
+                query[key]=ast_sql(f'{key}'
+                                            , st_date, ed_date
+                                            , fund_cd=self.ast_qry_key[key]['펀드코드']
+                                            , trsc_tp_cd=self.ast_qry_key[key]['거래코드']
+                                            , trsc_tp_nm=self.ast_qry_key[key]['거래명']
+                                            , trsc_type=self.ast_qry_key[key]['거래구분']
+                                            , clas_code= ["'AI130'", "'AI230'", "'AI330'", "'AI360'", "'AI430'"]).fs_ast_qry()
+                
+            elif key == '해외대체간접':
+                query[key]=ast_sql(f'{key}'
+                                            , st_date, ed_date
+                                            , fund_cd=self.ast_qry_key[key]['펀드코드']
+                                            , trsc_tp_cd=self.ast_qry_key[key]['거래코드']
+                                            , trsc_tp_nm=self.ast_qry_key[key]['거래명']
+                                            , trsc_type=self.ast_qry_key[key]['거래구분']
+                                            , clas_code= ["'AI140'","'AI240'","'AI340'","'AI640'", "'AI140'","'AI240'","'AI340'","'AI640'"]).fs_ast_qry()
+        
+        return query
+
+                ## 세부자산별        
+    def asset_dict(self, asset, name, code):## 위에 Global Scope Dictionary 를 통해 전역화 ('국내채권직접' 등의 함수를 이용하쟈)
+
+        result = {}
+        for el, clas_code in zip(name, code):
+            result[f'{asset}_{el}'] = ast_sql(f'{asset}_{el}'
                                         , st_date, ed_date
-                                        , fund_cd=ast_qry_key[key]['펀드코드']
-                                        , trsc_tp_cd=ast_qry_key[key]['거래코드']
-                                        , trsc_tp_nm=ast_qry_key[key]['거래명']
-                                        , trsc_type=ast_qry_key[key]['거래구분']
-                                        , clas_code= ["'AI140'","'AI240'","'AI340'","'AI640'", "'AI140'","'AI240'","'AI340'","'AI640'"]).fs_ast_qry()
-    
-    return query
+                                        , fund_cd=self.ast_qry_key[asset]['펀드코드']
+                                        , trsc_tp_cd=self.ast_qry_key[asset]['거래코드']
+                                        , trsc_tp_nm=self.ast_qry_key[asset]['거래명']
+                                        , trsc_type=self.ast_qry_key[asset]['거래구분']
+                                        , clas_code=clas_code).fs_ast_qry()
+        return result
 
-## 세부자산별        
-def asset_dict(asset, name, code):## 위에 Global Scope Dictionary 를 통해 전역화 ('국내채권직접' 등의 함수를 이용하쟈)
+    def dm_bd_mat_dict(self,mats): ## 채권_만기별
 
-    result = {}
-    for el, clas_code in zip(name, code):
-        result[f'{asset}_{el}'] = ast_sql(f'{asset}_{el}'
-                                    , st_date, ed_date
-                                    , fund_cd=ast_qry_key[asset]['펀드코드']
-                                    , trsc_tp_cd=ast_qry_key[asset]['거래코드']
-                                    , trsc_tp_nm=ast_qry_key[asset]['거래명']
-                                    , trsc_type=ast_qry_key[asset]['거래구분']
-                                    , clas_code=clas_code).fs_ast_qry()
-    return result
-
-def dm_bd_mat_dict(mats): ## 채권_만기별
-
-    result = {}
-    for mat in mats:
-        result[f'국내채권직접_{mat}'] = ast_sql(f'국내채권직접_{mat}'
-                                    , st_date, ed_date
-                                    , fund_cd=ast_qry_key['국내채권직접']['펀드코드']
-                                    , trsc_tp_cd=ast_qry_key['국내채권직접']['거래코드']
-                                    , trsc_tp_nm=ast_qry_key['국내채권직접']['거래명']
-                                    , trsc_type=ast_qry_key['국내채권직접']['거래구분']
-                                    , mat=mat).fs_ast_qry()
-    return result
-    
-def dm_bd_mat_sub_dict(name,code,mats): ## 채권_세부자산_만기별 
-
-    result = {}
-    for el, clas_code in zip(name, code):
+        result = {}
         for mat in mats:
-            result[f'국내채권직접_{el}_{mat}'] = ast_sql(f'국내채권직접_{el}_{mat}'
+            result[f'국내채권직접_{mat}'] = ast_sql(f'국내채권직접_{mat}'
                                         , st_date, ed_date
-                                        , fund_cd=ast_qry_key['국내채권직접']['펀드코드']
-                                        , trsc_tp_cd=ast_qry_key['국내채권직접']['거래코드']
-                                        , trsc_tp_nm=ast_qry_key['국내채권직접']['거래명']
-                                        , trsc_type=ast_qry_key['국내채권직접']['거래구분']
-                                        , clas_code=clas_code
-                                        , mat=mat).fs_ast_qry()    
-    return result
+                                        , fund_cd=self.ast_qry_key['국내채권직접']['펀드코드']
+                                        , trsc_tp_cd=self.ast_qry_key['국내채권직접']['거래코드']
+                                        , trsc_tp_nm=self.ast_qry_key['국내채권직접']['거래명']
+                                        , trsc_type=self.ast_qry_key['국내채권직접']['거래구분']
+                                        , mat=mat).fs_ast_qry()
+        return result
+        
+    def dm_bd_mat_sub_dict(self,name,code,mats): ## 채권_세부자산_만기별 
+
+        result = {}
+        for el, clas_code in zip(name, code):
+            for mat in mats:
+                result[f'국내채권직접_{el}_{mat}'] = ast_sql(f'국내채권직접_{el}_{mat}'
+                                            , st_date, ed_date
+                                            , fund_cd=self.ast_qry_key['국내채권직접']['펀드코드']
+                                            , trsc_tp_cd=self.ast_qry_key['국내채권직접']['거래코드']
+                                            , trsc_tp_nm=self.ast_qry_key['국내채권직접']['거래명']
+                                            , trsc_type=self.ast_qry_key['국내채권직접']['거래구분']
+                                            , clas_code=clas_code
+                                            , mat=mat).fs_ast_qry()    
+        return result
 
 def sql_steamroller(sql_dict):
     # Get SQL Dictionary then Quearying SQL, save DataFrames in the Dictionary.
-    dt = {}
+
+    dt={}
+    result={}
     for key, value in sql_dict.items():
         dt[key]=sql_loader(value).ast_read_sql()
-    
-    return dt
 
 
-["자산구분", "전일자평가금액", "평가금액", "장부금액", "매도", "매수", "별도", "기말금액", "수익률"]
+    for dict_key in ["수익률","장부금액","평가금액","전일자평가금액","매수","매도","별도","기초금액","기말금액"]:
+        data=pd.DataFrame(index=pd.date_range(st_date,ed_date))
+        for key in dt.keys():
+            data[key]=dt[key][dict_key]
+        result[dict_key]= data if dict_key == '수익률' else data .fillna(0)
 
-## Save it with CSV File
+    return result
+
+sql_f=sql_factory()
+
+upper_asset_qry_dict=sql_f.up_asset_dict()
+
+## 국내채권 세부
+dm_bd_sub_qry_dict=sql_f.asset_dict(asset='국내채권직접'
+                            , name=["국고","금융","특수","회사"]
+                            , code=["'BN110'", "'BN120'", "'BN130'", ["'BN140'", "'ST150'"]])
+
+
+## 국내채권 만기
+dm_bd_mat_qry_dict=sql_f.dm_bd_mat_dict(mats=["6개월미만", "6개월-1년","1년-2년","2년-3년"
+                                        ,"3년-5년","5년-10년","10년-20년","20년이상"]) ## 직접 내 만기 구분
+
+## 국내채권 세부/만기
+dm_bd_sub_mat_qry_dict=sql_f.dm_bd_mat_sub_dict(name=["국고","금융","특수","회사"],
+                                        code=["'BN110'", "'BN120'", "'BN130'", ["'BN140'", "'ST150'"]], 
+                                        mats=["6개월미만", "6개월-1년","1년-2년","2년-3년","3년-5년","5년-10년","10년-20년","20년이상"]) ## 세부 내 만기구분
+
+# 국내주식간접 세부
+dm_stk_sub_qry_dict=sql_f.asset_dict(asset='국내주식간접', 
+                            name=["성장","인덱스", "중소형주", "사회책임형", "배당형", "가치형", "액티브퀀트"], 
+                            code=["'OS221'", "'OS222'", "'OS223'", "'OS224'", "'OS225'", "'OS226'", "'OS227'"])
+                                        
+# 해외주식 세부
+ov_stk_sub_qry_dict=sql_f.asset_dict(asset='해외주식간접', 
+                            name=["액티브","패시브"], 
+                            code=["'OS323'", "'OS324'"])
+
+# 국내대체직접 세부
+dm_ai_j_sub_qry_dict=sql_f.asset_dict(asset='국내대체직접', 
+                                name=["SOC","부동산"], 
+                                code=["'AI110'", "'AI210'"])
+                                
+# 국내대체간접 세부
+dm_ai_g_sub_qry_dict=sql_f.asset_dict(asset='국내대체간접', 
+                            name=["SOC","부동산","PEF", "기타"], 
+                            code=["'AI130'", "'AI230'", "'AI330'", ["'AI360'", "'AI430'"]])
+
+# 해외대체간접 세부
+ov_ai_g_sub_qry_dict=sql_f.asset_dict(asset='해외대체간접', 
+                                name=["SOC","부동산","PEF", "헤지펀드"], 
+                                code=["'AI140'","'AI240'","'AI340'","'AI640'"])
+
+
 ## And Render Data in the Excel
 
 """
 Wait! / 해외채권간접/해외주식간접 펀드별도 해야겠네!
 """
-## 상위자산군 
-# '국내채권직접', '채권_금융상품', '해외채권직접', '해외채권간접', '국내주식직접', '국내주식간접', '해외주식간접', '현금성', '국내대체직접', '국내대체간접', '해외대체간접'
-upper_asset_qry_dict=up_asset_dict()
 
-## 국내채권 세부
-dm_bd_sub_qry_dict=asset_dict(asset='국내채권직접'
-                              , name=["국고","금융","특수","회사"]
-                              , code=["'BN110'", "'BN120'", "'BN130'", ["'BN140'", "'ST150'"]])
-
-
-## 국내채권 만기
-dm_bd_mat_qry_dict=dm_bd_mat_dict(mats=["6개월미만", "6개월-1년","1년-2년","2년-3년"
-                                        ,"3년-5년","5년-10년","10년-20년","20년이상"]) ## 직접 내 만기 구분
-
-## 국내채권 세부/만기
-dm_bd_sub_mat_qry_dict=dm_bd_mat_sub_dict(name=["국고","금융","특수","회사"],
-                                          code=["'BN110'", "'BN120'", "'BN130'", ["'BN140'", "'ST150'"]], 
-                                          mats=["6개월미만", "6개월-1년","1년-2년","2년-3년","3년-5년","5년-10년","10년-20년","20년이상"]) ## 세부 내 만기구분
-
-# 국내주식간접 세부
-dm_stk_sub_qry_dict=asset_dict(asset='국내주식간접', 
-                               name=["성장","인덱스", "중소형주", "사회책임형", "배당형", "가치형", "액티브퀀트"], 
-                               code=["'OS221'", "'OS222'", "'OS223'", "'OS224'", "'OS225'", "'OS226'", "'OS227'"])
-                                          
-# 해외주식 세부
-ov_stk_sub_qry_dict=asset_dict(asset='해외주식간접', 
-                               name=["액티브","패시브"], 
-                               code=["'OS323'", "'OS324'"])
-
-# 국내대체직접 세부
-dm_ai_j_sub_qry_dict=asset_dict(asset='국내대체직접', 
-                                name=["SOC","부동산"], 
-                                code=["'AI110'", "'AI210'"])
-                                
-# 국내대체간접 세부
-dm_ai_g_sub_qry_dict=asset_dict(asset='국내대체간접', 
-                               name=["SOC","부동산","PEF", "기타"], 
-                               code=["'AI130'", "'AI230'", "'AI330'", ["'AI360'", "'AI430'"]])
-
-# 해외대체간접 세부
-ov_ai_g_sub_qry_dict=asset_dict(asset='해외대체간접', 
-                                name=["SOC","부동산","PEF", "헤지펀드"], 
-                                code=["'AI140'","'AI240'","'AI340'","'AI640'"])
 
 upper_asset_data_dict=sql_steamroller(upper_asset_qry_dict)
+
+for el in ["장부금액","평가금액","전일자평가금액","매수","매도","별도","기초금액","기말금액"]:
+
+    upper_asset_data_dict[el]['국내채권계']=upper_asset_data_dict[el]['국내채권직접']+upper_asset_data_dict[el]['채권_금융상품']
+    upper_asset_data_dict[el]['해외채권계']=upper_asset_data_dict[el]['해외채권직접']+upper_asset_data_dict[el]['해외채권간접']
+    upper_asset_data_dict[el]['채권계']=upper_asset_data_dict[el]['국내채권계']+upper_asset_data_dict[el]['해외채권계']
+    upper_asset_data_dict[el]['국내주식계']=upper_asset_data_dict[el]['국내주식직접']+upper_asset_data_dict[el]['국내주식간접']
+    upper_asset_data_dict[el]['주식계']=upper_asset_data_dict[el]['해외주식간접']+upper_asset_data_dict[el]['국내주식계']
+    upper_asset_data_dict[el]['금융자산계']=upper_asset_data_dict[el]['채권계']+upper_asset_data_dict[el]['주식계']+upper_asset_data_dict[el]['현금성']
+    upper_asset_data_dict[el]['국내대체']=upper_asset_data_dict[el]['국내대체직접']+upper_asset_data_dict[el]['국내대체간접']
+    upper_asset_data_dict[el]['대체전체']=upper_asset_data_dict[el]['국내대체']+upper_asset_data_dict[el]['해외대체간접']
+    upper_asset_data_dict[el]['기금전체']=upper_asset_data_dict[el]['금융자산계']+upper_asset_data_dict[el]['대체전체']
+
+for el in ['국내채권계', '해외채권계', '채권계', '국내주식계', '주식계', '금융자산계', '국내대체', '대체전체', '기금전체']:
+
+    upper_asset_data_dict['수익률'][el]=upper_asset_data_dict['기말금액'][el].div(upper_asset_data_dict['기초금액'][el])
+
+print(upper_asset_data_dict)
+
+
+
 # dm_bd_sub_data_dict=sql_steamroller(dm_bd_sub_qry_dict)
 # dm_bd_mat_data_dict=sql_steamroller(dm_bd_mat_qry_dict)
 # dm_bd_sub_mat_data_dict=sql_steamroller(dm_bd_sub_mat_qry_dict)                                          
@@ -579,97 +614,27 @@ upper_asset_data_dict=sql_steamroller(upper_asset_qry_dict)
 # dm_ai_g_sub_data_dict=sql_steamroller(dm_ai_g_sub_qry_dict)
 # ov_ai_g_sub_data_dict=sql_steamroller(ov_ai_g_sub_qry_dict)
 
-bm_qry=bm_rf_qry(st_dt=st_date, ed_dt=ed_date).bm_query()
-rf_qry=bm_rf_qry(st_dt=st_date, ed_dt=ed_date).rf_query()
+# bm_qry=bm_rf_qry(st_dt=st_date, ed_dt=ed_date).bm_query()
+# rf_qry=bm_rf_qry(st_dt=st_date, ed_dt=ed_date).rf_query()
+
+# 하드코딩... 필요한가
+
+
+## 자산데이터 Dictionary 룹 돌린 후
+## 각 Element 별 데이터를 Sum해준뒤
+## 기말 / 기초 수익률 산출
 
 
 
-## 진행사항: SQL Loading - 전체 완료
 
-## 집계가 안된 것들, 더해줘야 함 각자 포함을 시켜줄 것.
-    ## Split per columns, then combine it for aggreagate Asset.
-## 숫자 계산 + 성과평가 만들어야됨 - 기금전체 / 주식 / 채권
-## 엑셀로 가야되는 것.
-"""
-    ## 국내채권계: 국내채권직접, 채권_금융상품
-    upper_asset_data_dict['국내채권직접']['기초자산'] + upper_asset_data_dict['채권_금융상품']['기초자산']
-    ## 채권계: 국내채권계, 해외채권간접
-    upper_asset_data_dict['국내채권계']['기초자산'] + upper_asset_data_dict['채권_금융상품']['기초자산']
-    ## 국내주식계: 국내주식직접, 국내주식간접 
-    ## 주식계: 국내주식계, 해외주식간접
-    ## 금융상품: 채권계,주식계,금융상품
-    ## 국내대체: 국내대체직접, 국내대체간접
-    ## 대체전체: 국내대체,해외대체간접
-"""
-
-""""""
-
-## 집계가 안된 것들, 더해줘야 함
+    ## 국내채권: 국내채권직접 / 채권
+    ## 국내채권:
 
 
 
 
 
-### 실험
-### SQL
 
-## 이슈 /
-    ## 세부 자산 중에서 일단위 Asset Data가 생략되는 문제가 있었음
-    ## 이로 인해서 Data Table 계산시 오류가 났던 문제
-    ## BM Rf 계산하는 것과 아닌 걸로 해결하자.
-## 공통분모 찾기
-    ## 
-## SQL Load
-
-
-
-
-
-## 쿼리 데이터 불러오기
-
-
-
-
-## 각 계정별 Feature를 뽑아 하나의 테이블로 만드는 Class
-## 기존의 많은 함수를 하나로 통합하는건 어떨까?
-## 예상변수
-## ["수익률","장부금액","평가금액","전일자평가금액","매수","매도","별도","기초금액","기말금액"]
-## 챕터별로 데이터 추출할 수 있게끔 
-
-class data_aggr:
-
-    def __init__(self, data_list):
-        self.data = pd.concat(data_list, axis = 0)
-    
-    def extract(self, var):
-        ## ["수익률","장부금액","평가금액","전일자평가금액","매수","매도","별도","기초금액","기말금액"]
-        ## if 수익률 / fillna(1) else 0
-
-        if var=='수익률':
-            return self.data[['자산구분', var]].pivot(columns='자산구분', values = var).fillna(1)
-        else:
-            return self.data[['자산구분', var]].pivot(columns='자산구분', values = var).fillna(0)
-             
-    def var_rto(self, var, st_cols='기금전체'):
-        ## 기초 / 장부 / 평가 / 기말
-        return self.extract(var).div(self.extract(var)[st_cols], axis = 0).drop(st_cols, axis = 1)
-
-    def aggr(self, ast_list, var, name):
-
-        ## 국내채권계: 국내채권직접, 채권_금융상품
-        ## 채권계: 국내채권계, 해외채권간접
-        ## 국내주식계: 국내주식직접, 국내주식간접 
-        ## 주식계: 국내주식계, 해외주식간접
-        ## 금융상품: 채권계,주식계,금융상품
-        ## 국내대체: 국내대체직접, 국내대체간접
-        ## 대체전체: 국내대체,해외대체간접
-
-        dt = pd.DataFrame()
- 
-        for ast_name in ast_list:
-            dt = pd.concat([dt,self.extract(var)[ast_name]])
-
-        return dt.sum(axis=1).rename(name)
 
 ## 수익률 등을 활용한 기초지표를 산출하기 위한 클래스
 class rt_stat:
