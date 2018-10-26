@@ -5,3 +5,4 @@ __pycache__
 .vscode
 test.py
 Data
+bd_bm.sql

@@ -379,12 +379,107 @@ class bm_rf_qry:
                 """
         return bm_qry
 
+    def bd_mat_sub_bm_wgt(self):
+
+        queary=f"""
+                SELECT DT STD_DT
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10000' THEN WGT END) "국내채권직접_국고"  
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10001' THEN WGT END) "국내채권직접_국고_6개월미만"       
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10002' THEN WGT END) "국내채권직접_국고_6개월-1년"              
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10003' THEN WGT END) "국내채권직접_국고_1년-2년"       
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10004' THEN WGT END) "국내채권직접_국고_2년-3년"       
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10005' THEN WGT END) "국내채권직접_국고_3년-5년"       
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10006' THEN WGT END) "국내채권직접_국고_5년-10년"       
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10007' THEN WGT END) "국내채권직접_국고_10년-20년"       
+                    , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10008' THEN WGT END) "국내채권직접_국고_20년이상"       
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10000' THEN WGT END) "국내채권직접_특수"  
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10001' THEN WGT END) "국내채권직접_특수_6개월미만"       
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10002' THEN WGT END) "국내채권직접_특수_6개월-1년"              
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10003' THEN WGT END) "국내채권직접_특수_1년-2년"       
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10004' THEN WGT END) "국내채권직접_특수_2년-3년"       
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10005' THEN WGT END) "국내채권직접_특수_3년-5년"       
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10006' THEN WGT END) "국내채권직접_특수_5년-10년"       
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10007' THEN WGT END) "국내채권직접_특수_10년-20년"       
+                    , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10008' THEN WGT END) "국내채권직접_특수_20년이상"       
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10000' THEN WGT END) "국내채권직접_금융"  
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10001' THEN WGT END) "국내채권직접_금융_6개월미만"       
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10002' THEN WGT END) "국내채권직접_금융_6개월-1년"              
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10003' THEN WGT END) "국내채권직접_금융_1년-2년"       
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10004' THEN WGT END) "국내채권직접_금융_2년-3년"       
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10005' THEN WGT END) "국내채권직접_금융_3년-5년"       
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10006' THEN WGT END) "국내채권직접_금융_5년-10년"       
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10007' THEN WGT END) "국내채권직접_금융_10년-20년"       
+                    , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10008' THEN WGT END) "국내채권직접_금융_20년이상"       
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10000' THEN WGT END) "국내채권직접_회사"  
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10001' THEN WGT END) "국내채권직접_회사_6개월미만"       
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10002' THEN WGT END) "국내채권직접_회사_6개월-1년"              
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10003' THEN WGT END) "국내채권직접_회사_1년-2년"       
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10004' THEN WGT END) "국내채권직접_회사_2년-3년"       
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10005' THEN WGT END) "국내채권직접_회사_3년-5년"       
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10006' THEN WGT END) "국내채권직접_회사_5년-10년"       
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10007' THEN WGT END) "국내채권직접_회사_10년-20년"       
+                    , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10008' THEN WGT END) "국내채권직접_회사_20년이상"       
+                FROM CX_TP_BOND_WT_RET_TR
+                WHERE DT BETWEEN {self.st_dt} AND {self.ed_dt}
+                GROUP BY DT
+               """
+        
+        return queary
+        ## 쿼리 붙여놓을 것. 
+
+    def bd_mat_sub_bm_ret(self):
+
+        queary= f"""
+                    SELECT DT STD_DT
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10000' THEN RET+1 END) "국고채"  
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10001' THEN RET+1 END) "국고채_6개월미만"       
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10002' THEN RET+1 END) "국고채_6개월-1년"              
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10003' THEN RET+1 END) "국고채_1년-2년"       
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10004' THEN RET+1 END) "국고채_2년-3년"       
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10005' THEN RET+1 END) "국고채_3년-5년"       
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10006' THEN RET+1 END) "국고채_5년-10년"       
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10007' THEN RET+1 END) "국고채_10년-20년"       
+                        , MIN(CASE WHEN BND_KD = '50001' AND EXPR = '10008' THEN RET+1 END) "국고채_20년이상"       
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10000' THEN RET+1 END) "특수채"  
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10001' THEN RET+1 END) "특수채_6개월미만"       
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10002' THEN RET+1 END) "특수채_6개월-1년"              
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10003' THEN RET+1 END) "특수채_1년-2년"       
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10004' THEN RET+1 END) "특수채_2년-3년"       
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10005' THEN RET+1 END) "특수채_3년-5년"       
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10006' THEN RET+1 END) "특수채_5년-10년"       
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10007' THEN RET+1 END) "특수채_10년-20년"       
+                        , MIN(CASE WHEN BND_KD = '50004' AND EXPR = '10008' THEN RET+1 END) "특수채_20년이상"       
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10000' THEN RET+1 END) "금융채"  
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10001' THEN RET+1 END) "금융채_6개월미만"       
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10002' THEN RET+1 END) "금융채_6개월-1년"              
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10003' THEN RET+1 END) "금융채_1년-2년"       
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10004' THEN RET+1 END) "금융채_2년-3년"       
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10005' THEN RET+1 END) "금융채_3년-5년"       
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10006' THEN RET+1 END) "금융채_5년-10년"       
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10007' THEN RET+1 END) "금융채_10년-20년"       
+                        , MIN(CASE WHEN BND_KD = '50003' AND EXPR = '10008' THEN RET+1 END) "금융채_20년이상"       
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10000' THEN RET+1 END) "회사채"  
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10001' THEN RET+1 END) "회사채_6개월미만"       
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10002' THEN RET+1 END) "회사채_6개월-1년"              
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10003' THEN RET+1 END) "회사채_1년-2년"       
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10004' THEN RET+1 END) "회사채_2년-3년"       
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10005' THEN RET+1 END) "회사채_3년-5년"       
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10006' THEN RET+1 END) "회사채_5년-10년"       
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10007' THEN RET+1 END) "회사채_10년-20년"       
+                        , MIN(CASE WHEN BND_KD = '50002' AND EXPR = '10008' THEN RET+1 END) "회사채_20년이상"
+                    FROM CX_TP_BOND_WT_RET_TR
+                    WHERE DT BETWEEN {self.st_dt} AND {self.ed_dt}
+                    GROUP BY DT
+        """
+
+        return queary
+
     def rf_query(self):
         
         st_dt_b3 = self.date_creator()
 
         rf_qry = f"""
-                SELECT *
+                SELECT A.STD_DT, POWER(A.RF/100 + 1, 1/365) RF
                 FROM
                 (
                     SELECT A.TRD_DT AS STD_DT
@@ -435,14 +530,14 @@ class sql_loader:
 
 class sql_factory:
 ## 상위자산군 
-# '국내채권직접', '채권_금융상품', '해외채권직접', '해외채권간접', '국내주식직접', '국내주식간접', '해외주식간접', '현금성', '국내대체직접', '국내대체간접', '해외대체간접'
+# '국내채권직접', '금융상품', '해외채권직접', '해외채권간접', '국내주식직접', '국내주식간접', '해외주식간접', '현금성', '국내대체직접', '국내대체간접', '해외대체간접'
     def __init__(self):
         self.ast_qry_key=dic.ast_qry_key
 
     def up_asset_dict(self):
 
         query={}
-        # asset_keys=['국내채권직접', '채권_금융상품', '해외채권직접', '해외채권간접', '국내주식직접', '국내주식간접', '해외주식간접', '현금성', '국내대체직접']
+        # asset_keys=['국내채권직접', '금융상품', '해외채권직접', '해외채권간접', '국내주식직접', '국내주식간접', '해외주식간접', '현금성', '국내대체직접']
         for key in self.ast_qry_key:
             if key not in ['국내대체간접', '해외대체간접']:
                 query[key]=ast_sql(f'{key}'
@@ -514,6 +609,7 @@ class sql_factory:
                                             , mat=mat).fs_ast_qry()    
         return result
 
+
 def sql_steamroller(sql_dict):
     # Get SQL Dictionary then Quearying SQL, save DataFrames in the Dictionary.
 
@@ -527,9 +623,15 @@ def sql_steamroller(sql_dict):
         data=pd.DataFrame(index=pd.date_range(st_date,ed_date))
         for key in dt.keys():
             data[key]=dt[key][dict_key]
-        result[dict_key]= data if dict_key == '수익률' else data .fillna(0)
+        result[dict_key]= data if dict_key == '수익률' else data.fillna(0)
 
     return result
+
+def asset_csv_saver(ast_cls_name, data_dict):
+
+    for key, value in data_dict.items():
+
+        value.to_csv(f'Data/{ast_cls_name}_{key}.csv')    
 
 sql_f=sql_factory()
 
@@ -576,18 +678,52 @@ ov_ai_g_sub_qry_dict=sql_f.asset_dict(asset='해외대체간접',
                                 code=["'AI140'","'AI240'","'AI340'","'AI640'"])
 
 
-## And Render Data in the Excel
+def sub_bm_creator(bm, asset_name, sub_list):
+
+    data=pd.DataFrame(index=pd.date_range(st_date,ed_date))
+
+    for sub in sub_list:
+        data[f'{asset_name}_{sub}']=bm[f'{asset_name}']
+
+    return data
+
+
+"""
+BM Data
+"""
+
+
+bm_rt=sql_loader(bm_rf_qry(st_dt=st_date, ed_dt=ed_date).bm_query()).bm_read_sql()
+rf_rt=sql_loader(bm_rf_qry(st_dt=st_date, ed_dt=ed_date).rf_query()).bm_read_sql()
+bm_bd_sub_rt=sql_loader(bm_rf_qry(st_dt=st_date, ed_dt=ed_date).bd_mat_sub_bm_ret()).bm_read_sql()
+bm_bd_sub_wgt=sql_loader(bm_rf_qry(st_dt=st_date, ed_dt=ed_date).bd_mat_sub_bm_wgt()).bm_read_sql()
+bm_dm_stk_sub_rt=sub_bm_creator(bm_rt,'국내주식간접',["성장","인덱스", "중소형주", "사회책임형", "배당형", "가치형", "액티브퀀트"])
+bm_ov_stk_sub_rt=sub_bm_creator(bm_rt,'해외주식간접',["액티브", "패시브"])
+
+bm_rt.to_csv('Data/bm_rt.csv')
+rf_rt.to_csv('Data/rf_rt.csv')
+bm_bd_sub_rt.to_csv('Data/bm_bd_sub_rt.csv')
+bm_bd_sub_wgt.to_csv('Data/bm_bd_sub_wgt.csv')
+bm_dm_stk_sub_rt.to_csv('Data/bm_dm_stk_sub_rt.csv')
+bm_ov_stk_sub_rt.to_csv('Data/bm_ov_stk_sub_rt.csv')
+# sub_dict={"국내주식간접": ["성장","인덱스", "중소형주", "사회책임형", "배당형", "가치형", "액티브퀀트"], 
+#           "해외주식간접": ["액티브", "패시브"]}    
 
 """
 Wait! / 해외채권간접/해외주식간접 펀드별도 해야겠네!
 """
 
+"""
+상위자산군
+"""
+
+## 상위자산군
 
 upper_asset_data_dict=sql_steamroller(upper_asset_qry_dict)
 
 for el in ["장부금액","평가금액","전일자평가금액","매수","매도","별도","기초금액","기말금액"]:
 
-    upper_asset_data_dict[el]['국내채권계']=upper_asset_data_dict[el]['국내채권직접']+upper_asset_data_dict[el]['채권_금융상품']
+    upper_asset_data_dict[el]['국내채권계']=upper_asset_data_dict[el]['국내채권직접']+upper_asset_data_dict[el]['금융상품']
     upper_asset_data_dict[el]['해외채권계']=upper_asset_data_dict[el]['해외채권직접']+upper_asset_data_dict[el]['해외채권간접']
     upper_asset_data_dict[el]['채권계']=upper_asset_data_dict[el]['국내채권계']+upper_asset_data_dict[el]['해외채권계']
     upper_asset_data_dict[el]['국내주식계']=upper_asset_data_dict[el]['국내주식직접']+upper_asset_data_dict[el]['국내주식간접']
@@ -601,151 +737,60 @@ for el in ['국내채권계', '해외채권계', '채권계', '국내주식계',
 
     upper_asset_data_dict['수익률'][el]=upper_asset_data_dict['기말금액'][el].div(upper_asset_data_dict['기초금액'][el])
 
-print(upper_asset_data_dict)
+asset_csv_saver('상위자산군', upper_asset_data_dict)
 
+"""
+국내대체 섹터별
+"""
 
+## 국내대체 섹터별
 
-# dm_bd_sub_data_dict=sql_steamroller(dm_bd_sub_qry_dict)
-# dm_bd_mat_data_dict=sql_steamroller(dm_bd_mat_qry_dict)
-# dm_bd_sub_mat_data_dict=sql_steamroller(dm_bd_sub_mat_qry_dict)                                          
-# dm_stk_sub_data_dict=sql_steamroller(dm_stk_sub_qry_dict)                               
-# ov_stk_sub_data_dict=sql_steamroller(ov_stk_sub_qry_dict)                                
-# dm_ai_j_sub_data_dict=sql_steamroller(dm_ai_j_sub_qry_dict)
-# dm_ai_g_sub_data_dict=sql_steamroller(dm_ai_g_sub_qry_dict)
-# ov_ai_g_sub_data_dict=sql_steamroller(ov_ai_g_sub_qry_dict)
+dm_ai_j_sub_data_dict=sql_steamroller(dm_ai_j_sub_qry_dict)
+dm_ai_g_sub_data_dict=sql_steamroller(dm_ai_g_sub_qry_dict)
 
-# bm_qry=bm_rf_qry(st_dt=st_date, ed_dt=ed_date).bm_query()
-# rf_qry=bm_rf_qry(st_dt=st_date, ed_dt=ed_date).rf_query()
+asset_csv_saver('국내대체직접_섹터별',dm_ai_j_sub_data_dict)
+asset_csv_saver('국내대체간접_섹터별', dm_ai_g_sub_data_dict)
 
-# 하드코딩... 필요한가
+def dm_ai_aggr_creator():
 
+    ## 하드코딩 안하게 해주세영...
 
-## 자산데이터 Dictionary 룹 돌린 후
-## 각 Element 별 데이터를 Sum해준뒤
-## 기말 / 기초 수익률 산출
+    result={}
 
+    for el in ["장부금액","평가금액","전일자평가금액","매수","매도","별도","기초금액","기말금액"]:
+        ## el Loop 내 리스트 순서 절대 바꾸지 말것.
+        ## 하드코딩 / 추후 대체 자산군 변경되면 고쳐주시길~
+        data=pd.DataFrame(index=pd.date_range(st_date,ed_date))
+        data['국내대체_SOC']=dm_ai_j_sub_data_dict[el]['국내대체직접_SOC']+dm_ai_g_sub_data_dict[el]['국내대체간접_SOC']
+        data['국내대체_부동산']=dm_ai_j_sub_data_dict[el]['국내대체직접_부동산']+dm_ai_g_sub_data_dict[el]['국내대체간접_부동산']                        
+        data['국내대체_PEF']=dm_ai_g_sub_data_dict[el]['국내대체간접_PEF']
+        data['국내대체_기타']=dm_ai_g_sub_data_dict[el]['국내대체간접_기타']        
 
+        result[el]=data
 
+    result['수익률']=result['기말금액']/result['기초금액']
 
-    ## 국내채권: 국내채권직접 / 채권
-    ## 국내채권:
+    return result
 
+dm_ai_sub_data_dict=dm_ai_aggr_creator()
+asset_csv_saver('국내대체_섹터별',dm_ai_sub_data_dict)
 
+"""
+나머지
+"""
 
+## 국내대체간접, 직접 합산후 SOC, 부동산 산출
 
+dm_bd_sub_data_dict=sql_steamroller(dm_bd_sub_qry_dict)
+dm_bd_mat_data_dict=sql_steamroller(dm_bd_mat_qry_dict)
+dm_bd_sub_mat_data_dict=sql_steamroller(dm_bd_sub_mat_qry_dict)
+dm_stk_sub_data_dict=sql_steamroller(dm_stk_sub_qry_dict)
+ov_stk_sub_data_dict=sql_steamroller(ov_stk_sub_qry_dict)
+ov_ai_g_sub_data_dict=sql_steamroller(ov_ai_g_sub_qry_dict)
 
-
-
-## 수익률 등을 활용한 기초지표를 산출하기 위한 클래스
-class rt_stat:
-
-    # 주의: BM데이터의 포맷과 RETURN 데이터의 포맷은 똑같아야함. 안그러면 망 ㅎ
-
-    def __init__(self, ret, rf, bm):
-
-        self.dt_list = ret.index
-        self.rt = ret
-        self.rf = rf
-        self.bm = bm
-
-    def avg_ret(self, Freq='A'):
-
-        ans = {'rt': self.rt.resample(Freq).mean().sub(1).div(1 / 365),
-               'rf': self.rf.resample(Freq).mean().sub(1).div(1 / 365),
-               'bm': self.bm.resample(Freq).mean().sub(1).div(1 / 365)}
-
-        return ans
-
-    def prod_ret(self, Freq='A'):
-
-        ans = {'rt': self.rt.resample(Freq).prod().sub(1),
-               'rf': self.rf.resample(Freq).prod().sub(1),
-               'bm': self.bm.resample(Freq).prod().sub(1)}
-
-        return ans
-
-    def cum_rt(self):
-
-        ans = {'rt': self.rt.cumprod(),
-               'rf': self.rf.cumprod(),
-               'bm': self.bm.cumprod()}
-
-        return ans
-
-    def ret_vol(self, Freq='A'):
-
-        def s_std(x):
-            return np.std(x, ddof=1) * np.sqrt(365)
-
-        ans = {'rt': self.rt.resample(Freq).apply(s_std),
-               'bm': self.bm.resample(Freq).apply(s_std)}
-
-        return ans
-
-    def trek_error(self, Freq='A'):
-
-        def s_std(x):
-            return np.std(x, ddof=1) * np.sqrt(365)
-
-        ans = (self.rt.sub(self.bm)) \
-            .resample(Freq) \
-            .apply(s_std)
-
-        return ans
-
-    def sharpe_rto(self, Freq='A'):
-
-        a_rt = self.avg_ret(Freq)
-        a_vol = self.ret_vol(Freq)
-
-        ## 운용수익률 샤프
-        rt_shp = a_rt['rt'].sub(a_rt['rf']['RF'], axis=0)
-        rt_shp.where(rt_shp < 0, rt_shp.div(a_vol['rt']), inplace=True)
-        rt_shp.where(rt_shp >= 0, rt_shp.div(1/a_vol['rt']), inplace=True)
-
-        ## BM수익률 샤프
-
-        bm_shp = a_rt['bm'].sub(a_rt['rf']['RF'], axis=0)
-        bm_shp.where(bm_shp < 0, bm_shp.div(a_vol['bm']), inplace=True)
-        bm_shp.where(bm_shp >= 0, bm_shp.div(1 / a_vol['bm']), inplace=True)
-
-        ans = {'rt_shp': rt_shp,
-               'bm_shp': bm_shp}
-
-        return ans
-
-    def inf_rto(self, Freq='A'):
-
-        a_rt = self.avg_ret(Freq)
-        a_tr = self.trek_error(Freq)
-
-        rt_tre = (a_rt['rt'].sub(a_rt['bm'])).div(a_tr)
-
-        return rt_tre
-
-    def alp_beta(self):
-
-        cols = self.rt.columns
-        ans_dt = pd.DataFrame(index=cols,
-                          columns=['beta', 'alpha'],
-                          data= np.zeros((len(cols), 2)))
-
-        for col in cols:
-            rt_dt = self.rt[col].sub(self.rf['RF']).dropna().rename('y')
-            bm_dt = self.bm[col].sub(self.rf['RF']).loc[rt_dt.index].rename('x')
-
-            data_1 = pd.concat([bm_dt, rt_dt], axis=1)
-            result = ols('y~x', data_1).fit()
-            ans_dt.loc[col, 'beta'] = result.params['x']
-            ans_dt.loc[col, 'alpha'] = result.params['Intercept']
-
-        return ans_dt
-
-    def tryn_rto(self):
-
-        return self.avg_ret()['rt'].sub(self.avg_ret()['rf']['RF'], axis=0).div(self.alp_beta()['beta'])
-
-
-
-
-
+asset_csv_saver('국내채권직접_섹터별', dm_bd_sub_data_dict)
+asset_csv_saver('국내채권직접_만기별', dm_bd_mat_data_dict)
+asset_csv_saver('국내채권직접_섹터_만기별', dm_bd_sub_mat_data_dict)
+asset_csv_saver('국내주식간접_유형별', dm_stk_sub_data_dict)
+asset_csv_saver('해외주식간접_유형별', ov_stk_sub_data_dict)
+asset_csv_saver('해외대체간접_유형별', ov_ai_g_sub_data_dict)
